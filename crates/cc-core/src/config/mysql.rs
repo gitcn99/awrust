@@ -23,6 +23,8 @@ pub struct MysqlConfig {
     pub max_connections: u32,
     #[serde(default = "default_ssl_mode")]
     pub ssl_mode: String,
+    #[serde(default)]
+    pub disable_sql_mode: bool,
 }
 
 impl Default for MysqlConfig {
@@ -35,6 +37,7 @@ impl Default for MysqlConfig {
             database: String::new(),
             max_connections: default_max_connections(),
             ssl_mode: default_ssl_mode(),
+            disable_sql_mode: false,
         }
     }
 }
@@ -124,6 +127,10 @@ impl MysqlConfigBuilder {
         self.0.ssl_mode = v.into();
         self
     }
+    pub fn disable_sql_mode(mut self, v: bool) -> Self {
+        self.0.disable_sql_mode = v;
+        self
+    }
 }
 
 // ──────────────────────────────────────────────
@@ -169,6 +176,9 @@ pub(crate) fn collect_env_mysql(
                     .map_err(|e| anyhow::anyhow!("MAX_CONNECTIONS 解析失败: {}", e))?
             }
             "SSL_MODE" => entry.ssl_mode = val,
+            "DISABLE_SQL_MODE" => {
+                entry.disable_sql_mode = matches!(val.as_str(), "1" | "true" | "TRUE")
+            }
             _ => {}
         }
     }

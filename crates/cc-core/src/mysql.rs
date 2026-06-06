@@ -26,6 +26,10 @@ pub fn connect_options(cfg: &MysqlConfig) -> MySqlConnectOptions {
         .password(&cfg.password)
         .ssl_mode(ssl_mode_from_str(&cfg.ssl_mode));
 
+    if cfg.disable_sql_mode {
+        opts = opts.no_engine_substitution(false).pipes_as_concat(false);
+    }
+
     if !cfg.database.is_empty() {
         opts = opts.database(&cfg.database);
     }

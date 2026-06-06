@@ -323,6 +323,7 @@ mod tests {
                 database: "db".into(),
                 max_connections: 5,
                 ssl_mode: "preferred".into(),
+                disable_sql_mode: false,
             },
         );
         let cfg = ConfigBuilder::new()

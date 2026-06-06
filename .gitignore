@@ -1,0 +1,42 @@
+# Rust
+debug
+target
+**/*.rs.bk
+*.pdb
+**/mutants.out*/
+.sqlx/
+
+# Nuxt
+# Dependencies
+node_modules
+package-lock.json
+# Logs
+*.log
+# Temp directories
+.temp
+.tmp
+.cache
+# Generated dirs
+dist
+.nuxt
+.nuxt-*
+.vercel
+.netlify
+.output
+.output-*
+.gen
+.test
+# local env files
+.env*.local
+.env
+
+# macos
+.DS_Store
+
+# skills
+skills-lock.json
+
+# private
+config/config.toml
+data
+!data/.gitkeep

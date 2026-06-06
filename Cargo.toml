@@ -1,0 +1,17 @@
+[workspace]
+# 使用通配符自动纳入 crates/ 下的所有成员，新增子 crate 无需改动此处
+members = ["crates/*"]
+resolver = "2"
+
+# 各成员 crate 共用同一套依赖版本，统一在此处声明，子 crate 用 `workspace = true` 引用。
+[workspace.dependencies]
+cc-core = { path = "crates/cc-core" }
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "mysql"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+serde = { version = "1", features = ["derive"] }
+toml = "1.1.2"
+redis = { version = "1", default-features = false, features = ["tokio-comp", "connection-manager"] }
+anyhow = "1"
+
+[profile.release]
+opt-level = 2

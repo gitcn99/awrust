@@ -1,0 +1,32 @@
+[package]
+name = "cc-core"
+version = "0.1.0"
+edition = "2021"
+description = "A core library for configuration, MySQL and Redis connection management"
+license = "MIT"
+repository = "https://github.com/gitcn99/awrust"
+readme = "../../README.md"
+keywords = ["config", "mysql", "redis", "database"]
+categories = ["database", "config"]
+
+[dependencies]
+sqlx = { workspace = true }
+serde = { workspace = true }
+toml = { workspace = true }
+redis = { workspace = true }
+anyhow = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+
+[[example]]
+name = "basic_config"
+path = "examples/basic_config.rs"
+
+[[example]]
+name = "mysql_connect"
+path = "examples/mysql_connect.rs"
+
+[[example]]
+name = "redis_connect"
+path = "examples/redis_connect.rs"

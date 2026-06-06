@@ -1,4 +1,4 @@
-use cc_core::{mysql::MysqlPools, Config, IntoMysqlName};
+use cc_core::{mysql::MysqlPools, ConfigBuilder, IntoMysqlName};
 
 enum MysqlName {
     Default,
@@ -14,7 +14,12 @@ impl IntoMysqlName for MysqlName {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let config = Config::load("config/config.toml")?;
+    // 分层配置：文件 → 环境变量 → 程序化覆盖
+    let config = ConfigBuilder::new()
+        .with_file("config/config.toml")?
+        .with_env()?
+        .build()?;
+
     let pools = MysqlPools::from_config(&config).await?;
     let pool = pools.require(MysqlName::Default)?;
 

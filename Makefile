@@ -17,7 +17,7 @@ lint: fmt
 	cargo clippy --workspace --all-targets -- -D warnings
 
 test:
-	cargo test --workspace --all-targets
+	cargo test --workspace
 
 examples:
 	@for d in crates/*/examples/*.rs; do \
@@ -26,3 +26,6 @@ examples:
 		echo "\n▶ Running $$crate::$$name ..."; \
 		cargo run -p $$crate --example $$name; \
 	done
+
+verify: fmt lint test examples
+	@echo "Verify successful"

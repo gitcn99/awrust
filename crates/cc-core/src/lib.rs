@@ -1,8 +1,9 @@
-//! 核心公共库：集中维护 MySQL / Redis 的初始化与连接，配置来自 config/config.toml 文件。
+//! 核心公共库：分层配置系统 + MySQL / Redis 连接管理。
 
 pub mod config;
 pub mod mysql;
 pub mod redis;
 
-pub use config::{Config, MysqlConfig, RedisConfig};
-pub use config::{IntoMysqlName, IntoRedisName};
+pub use config::{Config, ConfigBuilder, MysqlConfig, RedisConfig};
+pub use config::{IntoMysqlName, IntoRedisName, Validate};
+pub use config::{MysqlConfigBuilder, RedisConfigBuilder};

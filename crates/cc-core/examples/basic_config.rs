@@ -1,7 +1,8 @@
-use cc_core::Config;
+use cc_core::ConfigBuilder;
 
 fn main() -> anyhow::Result<()> {
-    let config = Config::load("config/config.toml")?;
+    // 从文件加载
+    let config = ConfigBuilder::from_file("config/config.toml")?.build()?;
 
     if let Some(mysql_config) = config.mysql("default") {
         println!("MySQL: {}:{}", mysql_config.host, mysql_config.port);

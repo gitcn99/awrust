@@ -3,27 +3,12 @@
 
 # 默认 MySQL
 [mysql.default]
-host = "db.example.com"
+host = "127.0.0.1"
 port = 3306
 user = "your_user"
 password = "your_password"
 database = "your_db"
-max_connections = 5
-# TLS 模式：disabled | preferred | required | verify-ca | verify-identity
-ssl_mode = "preferred"
-
-# 订单库（按需启用）
-[mysql.order_db]
-host = "db.example.com"
-port = 3306
-user = "your_user"
-password = "your_password"
-database = "order_db"
 
 # Redis 连接
-# 连接串形如 redis://[:password@]host:port[/db]
 [redis.default]
-url = "redis://127.0.0.1:6379"
-
-[redis.session]
-url = "redis://:password@127.0.0.1:6379/1"
+url = "redis://:password@127.0.0.1:6379"

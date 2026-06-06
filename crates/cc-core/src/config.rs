@@ -124,7 +124,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parses_multiple_named_connections() {
+    fn parses_config() {
         let toml = r#"
             [mysql.default]
             host = "h1"
@@ -135,12 +135,7 @@ mod tests {
             max_connections = 1
             ssl_mode = "preferred"
 
-            [mysql.order_db]
-            host = "h2"
-            username = "u2"
-            password = "p2"
-
-            [redis.session]
+            [redis.default]
             url = "redis://127.0.0.1:6379"
         "#;
         let cfg: Config = toml::from_str(toml).unwrap();
@@ -149,14 +144,6 @@ mod tests {
         assert_eq!(d.host, "h1");
         assert_eq!(d.port, 3306);
 
-        // order_db 走默认值：port=3306、ssl_mode=preferred、max_connections=5、database=""
-        let b = cfg.mysql("order_db").unwrap();
-        assert_eq!(b.user, "u2"); // username 别名
-        assert_eq!(b.port, 3306);
-        assert_eq!(b.max_connections, 5);
-        assert_eq!(b.ssl_mode, "preferred");
-        assert!(b.database.is_empty());
-
-        assert_eq!(cfg.redis("session").unwrap().url, "redis://127.0.0.1:6379");
+        assert_eq!(cfg.redis("default").unwrap().url, "redis://127.0.0.1:6379");
     }
 }

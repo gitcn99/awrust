@@ -12,7 +12,7 @@ awrust/
 │       │   ├── lib.rs
 │       │   ├── config/       # 分层配置系统
 │       │   ├── mysql.rs      # MySQL 连接池管理
-│       │   └── redis.rs      # Redis 连接管理
+│       │   └── redis.rs      # Redis 连接池管理
 │       └── examples/         # 使用示例
 ├── config/                   # 配置文件
 │   ├── config.toml           # 实际配置（git ignored）
@@ -45,89 +45,19 @@ url = "redis://:password@127.0.0.1:6379"
 EOF
 ```
 
-### 分层配置
+### 功能特性
 
-配置优先级从低到高：**TOML 文件 → 环境变量 → 程序化覆盖**。
+- **分层配置** — 支持 TOML / YAML / JSON 文件 → 环境变量 → 程序化覆盖
+- **MySQL 连接池** — 多命名连接池管理，支持健康检查和优雅关闭
+- **Redis 连接池** — 多命名连接管理，支持自动重连
 
-```rust
-use cc_core::ConfigBuilder;
+### 代码示例
 
-fn main() -> anyhow::Result<()> {
-    let config = ConfigBuilder::new()
-        .with_file("config/config.toml")?
-        .with_env()?
-        .build()?;
-    Ok(())
-}
-```
-
-环境变量格式：`CC_MYSQL_<NAME>_<FIELD>` / `CC_REDIS_<NAME>_<FIELD>`，可通过 `env_prefix()` 自定义前缀。
-
-### MySQL 连接
-
-```rust
-use cc_core::{mysql::MysqlPools, ConfigBuilder, IntoMysqlName};
-
-enum MysqlName {
-    Default,
-}
-
-impl IntoMysqlName for MysqlName {
-    fn into_name(self) -> String {
-        match self {
-            Self::Default => "default".into(),
-        }
-    }
-}
-
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let config = ConfigBuilder::new()
-        .with_file("config/config.toml")?
-        .with_env()?
-        .build()?;
-
-    let pools = MysqlPools::from_config(&config).await?;
-    let pool = pools.require(MysqlName::Default)?;
-
-    let version: (String,) = sqlx::query_as("SELECT VERSION()").fetch_one(pool).await?;
-    println!("MySQL: {}", version.0);
-    Ok(())
-}
-```
-
-### Redis 连接
-
-```rust
-use cc_core::{redis::RedisPools, ConfigBuilder, IntoRedisName};
-
-enum RedisName {
-    Default,
-}
-
-impl IntoRedisName for RedisName {
-    fn into_name(self) -> String {
-        match self {
-            Self::Default => "default".into(),
-        }
-    }
-}
-
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let config = ConfigBuilder::new()
-        .with_file("config/config.toml")?
-        .with_env()?
-        .build()?;
-
-    let pools = RedisPools::from_config(&config).await?;
-    let mut conn = pools.require(RedisName::Default)?;
-
-    let pong: String = redis::cmd("PING").query_async(&mut conn).await?;
-    println!("PING: {}", pong);
-    Ok(())
-}
-```
+| 示例                                                         | 说明             |
+| ------------------------------------------------------------ | ---------------- |
+| [basic_config.rs](crates/cc-core/examples/basic_config.rs)   | 基础配置加载     |
+| [mysql_connect.rs](crates/cc-core/examples/mysql_connect.rs) | MySQL 连接池管理 |
+| [redis_connect.rs](crates/cc-core/examples/redis_connect.rs) | Redis 连接池管理 |
 
 ## 开发
 

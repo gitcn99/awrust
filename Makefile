@@ -24,7 +24,11 @@ examples:
 		name=$$(basename $$d .rs); \
 		crate=$$(basename $$(dirname $$(dirname $$d))); \
 		echo "\n▶ Running $$crate::$$name ..."; \
-		cargo run -p $$crate --example $$name; \
+		if [ "$$name" = "hot_reload" ]; then \
+			timeout 5 cargo run -p $$crate --example $$name --all-features || true; \
+		else \
+			cargo run -p $$crate --example $$name --all-features; \
+		fi; \
 	done
 
 verify: fmt lint test examples

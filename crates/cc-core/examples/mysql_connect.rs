@@ -13,8 +13,7 @@ impl IntoMysqlName for MysqlName {
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    // 分层配置：文件 → 环境变量 → 程序化覆盖
+async fn main() -> cc_core::ConfigResult<()> {
     let config = ConfigBuilder::new()
         .with_file("config/config.toml")?
         .with_env()?
@@ -25,5 +24,9 @@ async fn main() -> anyhow::Result<()> {
 
     let version: (String,) = sqlx::query_as("SELECT VERSION()").fetch_one(pool).await?;
     println!("MySQL: {}", version.0);
+
+    pools.ping_all().await?;
+    println!("所有 MySQL 连接健康检查通过");
+
     Ok(())
 }

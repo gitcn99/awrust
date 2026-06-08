@@ -1,6 +1,6 @@
 [package]
 name = "cc-core"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 description = "A core library for configuration, MySQL and Redis connection management"
 license = "MIT"
@@ -9,15 +9,25 @@ readme = "../../README.md"
 keywords = ["config", "mysql", "redis", "database"]
 categories = ["database", "config"]
 
-[dependencies]
-sqlx = { workspace = true }
-serde = { workspace = true }
-toml = { workspace = true }
-redis = { workspace = true }
-anyhow = { workspace = true }
+[features]
+default = ["mysql", "redis", "config-toml"]
+mysql = ["dep:sqlx", "sqlx/mysql"]
+redis = ["dep:redis"]
+config-toml = ["dep:toml"]
+config-yaml = ["dep:yaml_serde"]
+config-json = ["dep:serde_json"]
 
-[dev-dependencies]
-tokio = { workspace = true }
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+toml = { workspace = true, optional = true }
+sqlx = { workspace = true, optional = true }
+redis = { workspace = true, optional = true }
+yaml_serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+tokio = { workspace = true, features = ["full"] }
+
 
 [[example]]
 name = "basic_config"
@@ -26,7 +36,9 @@ path = "examples/basic_config.rs"
 [[example]]
 name = "mysql_connect"
 path = "examples/mysql_connect.rs"
+required-features = ["mysql"]
 
 [[example]]
 name = "redis_connect"
 path = "examples/redis_connect.rs"
+required-features = ["redis"]

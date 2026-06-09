@@ -10,12 +10,14 @@ keywords = ["config", "mysql", "redis", "database"]
 categories = ["database", "config"]
 
 [features]
-default = ["mysql", "redis", "config-toml"]
+default = ["mysql", "redis", "config-toml", "tracing-init", "http"]
 mysql = ["dep:sqlx", "sqlx/mysql"]
 redis = ["dep:redis"]
 config-toml = ["dep:toml"]
 config-yaml = ["dep:yaml_serde"]
 config-json = ["dep:serde_json"]
+tracing-init = ["dep:tracing-subscriber"]
+http = ["dep:reqwest"]
 
 [dependencies]
 serde = { workspace = true }
@@ -27,18 +29,31 @@ redis = { workspace = true, optional = true }
 yaml_serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 tokio = { workspace = true, features = ["full"] }
+tracing-subscriber = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }
 
 
 [[example]]
 name = "basic_config"
 path = "examples/basic_config.rs"
+required-features = ["tracing-init"]
 
 [[example]]
 name = "mysql_connect"
 path = "examples/mysql_connect.rs"
-required-features = ["mysql"]
+required-features = ["mysql", "tracing-init"]
 
 [[example]]
 name = "redis_connect"
 path = "examples/redis_connect.rs"
-required-features = ["redis"]
+required-features = ["redis", "tracing-init"]
+
+[[example]]
+name = "graceful_shutdown"
+path = "examples/graceful_shutdown.rs"
+required-features = ["mysql", "redis", "tracing-init"]
+
+[[example]]
+name = "http_client"
+path = "examples/http_client.rs"
+required-features = ["http", "tracing-init"]

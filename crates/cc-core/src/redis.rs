@@ -9,6 +9,20 @@ use ::redis::Client;
 use crate::config::{Config, IntoRedisName, RedisConfig};
 use crate::error::{ConfigResult, Error};
 
+/// 对 Redis URL 进行脱敏，隐藏密码部分。
+///
+/// `redis://:password@host:6379` → `redis://:****@host:6379`
+fn mask_url(url: &str) -> String {
+    if let Some(at_pos) = url.find('@') {
+        if let Some(scheme_end) = url.find("://") {
+            let scheme = &url[..scheme_end + 3];
+            let rest = &url[at_pos..];
+            return format!("{scheme}****{rest}");
+        }
+    }
+    url.to_string()
+}
+
 /// Redis 连接状态信息。
 #[derive(Debug, Clone)]
 pub struct ConnectionStats {
@@ -41,10 +55,10 @@ impl std::fmt::Debug for RedisConnection {
 impl RedisConnection {
     /// 创建新的 Redis 连接
     pub async fn new(cfg: &RedisConfig) -> ConfigResult<Self> {
-        tracing::info!(url = %cfg.url, "创建 Redis 连接管理器");
+        tracing::info!(url = %mask_url(&cfg.url), "创建 Redis 连接管理器");
 
         let client = Client::open(cfg.url.as_str()).map_err(|e| Error::RedisOpen {
-            url: cfg.url.clone(),
+            url: mask_url(&cfg.url),
             message: e.to_string(),
             source: e,
         })?;
@@ -52,12 +66,12 @@ impl RedisConnection {
         let manager = ConnectionManager::new(client)
             .await
             .map_err(|e| Error::RedisConnect {
-                url: cfg.url.clone(),
+                url: mask_url(&cfg.url),
                 message: e.to_string(),
                 source: e,
             })?;
 
-        tracing::info!(url = %cfg.url, "Redis 连接管理器创建成功");
+        tracing::info!(url = %mask_url(&cfg.url), "Redis 连接管理器创建成功");
         Ok(Self { manager })
     }
 

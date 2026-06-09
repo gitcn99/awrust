@@ -20,9 +20,11 @@
 
 mod mysql;
 mod redis;
+mod tracing;
 
 pub use mysql::{MysqlConfig, MysqlConfigBuilder};
 pub use redis::{RedisConfig, RedisConfigBuilder};
+pub use tracing::{TracingConfig, TracingConfigBuilder};
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -113,13 +115,15 @@ pub trait Validate {
 // Config — 顶层容器
 // ──────────────────────────────────────────────
 
-/// 整个配置：多个命名 MySQL / Redis 连接。
+/// 整个配置：多个命名 MySQL / Redis 连接 + Tracing 日志配置。
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub mysql: HashMap<String, MysqlConfig>,
     #[serde(default)]
     pub redis: HashMap<String, RedisConfig>,
+    #[serde(default)]
+    pub tracing: TracingConfig,
 }
 
 impl Config {
@@ -131,6 +135,11 @@ impl Config {
     /// 按名取 Redis 配置。
     pub fn redis(&self, name: &str) -> Option<&RedisConfig> {
         self.redis.get(name)
+    }
+
+    /// 获取 Tracing 配置。
+    pub fn tracing(&self) -> &TracingConfig {
+        &self.tracing
     }
 
     /// 获取所有 MySQL 连接名。
@@ -154,6 +163,9 @@ impl Validate for Config {
             rc.validate()
                 .map_err(|e| Error::ConfigValidation(format!("Redis[{}]: {}", name, e)))?;
         }
+        self.tracing
+            .validate()
+            .map_err(|e| Error::ConfigValidation(format!("Tracing: {}", e)))?;
         Ok(())
     }
 }
@@ -176,6 +188,7 @@ impl Validate for Config {
 pub struct ConfigBuilder {
     mysql: HashMap<String, MysqlConfig>,
     redis: HashMap<String, RedisConfig>,
+    tracing: TracingConfig,
     env_prefix: String,
 }
 
@@ -187,10 +200,11 @@ impl Default for ConfigBuilder {
 
 impl ConfigBuilder {
     pub fn new() -> Self {
-        tracing::debug!("创建 ConfigBuilder");
+        ::tracing::debug!("创建 ConfigBuilder");
         Self {
             mysql: HashMap::new(),
             redis: HashMap::new(),
+            tracing: TracingConfig::default(),
             env_prefix: DEFAULT_ENV_PREFIX.to_string(),
         }
     }
@@ -232,7 +246,7 @@ impl ConfigBuilder {
     /// 从配置文件加载，根据扩展名自动选择解析器。
     pub fn with_file<P: AsRef<Path>>(self, path: P) -> ConfigResult<Self> {
         let path = path.as_ref();
-        tracing::info!(path = %path.display(), "加载配置文件");
+        ::tracing::info!(path = %path.display(), "加载配置文件");
         let text = std::fs::read_to_string(path).map_err(|e| Error::ConfigFileRead {
             path: path.display().to_string(),
             source: e,
@@ -259,7 +273,7 @@ impl ConfigBuilder {
     /// 从内联 TOML 字符串加载（方便测试和动态配置）。
     #[cfg(feature = "config-toml")]
     pub fn with_toml(self, toml_str: &str) -> ConfigResult<Self> {
-        tracing::debug!("解析 TOML 配置");
+        ::tracing::debug!("解析 TOML 配置");
         let file_cfg: Config = toml::from_str(toml_str)?;
         Ok(self.merge(file_cfg))
     }
@@ -267,7 +281,7 @@ impl ConfigBuilder {
     /// 从内联 YAML 字符串加载（需要 `config-yaml` feature）。
     #[cfg(feature = "config-yaml")]
     pub fn with_yaml(self, yaml_str: &str) -> ConfigResult<Self> {
-        tracing::debug!("解析 YAML 配置");
+        ::tracing::debug!("解析 YAML 配置");
         let file_cfg: Config = yaml_serde::from_str(yaml_str)?;
         Ok(self.merge(file_cfg))
     }
@@ -275,19 +289,20 @@ impl ConfigBuilder {
     /// 从内联 JSON 字符串加载（需要 `config-json` feature）。
     #[cfg(feature = "config-json")]
     pub fn with_json(self, json_str: &str) -> ConfigResult<Self> {
-        tracing::debug!("解析 JSON 配置");
+        ::tracing::debug!("解析 JSON 配置");
         let file_cfg: Config = serde_json::from_str(json_str)?;
         Ok(self.merge(file_cfg))
     }
 
-    /// 读取环境变量覆盖。格式：`<PREFIX>_MYSQL_<NAME>_<FIELD>` / `<PREFIX>_REDIS_<NAME>_<FIELD>`
+    /// 读取环境变量覆盖。格式：`<PREFIX>_MYSQL_<NAME>_<FIELD>` / `<PREFIX>_REDIS_<NAME>_<FIELD>` / `<PREFIX>_TRACING_<FIELD>`
     pub fn with_env(mut self) -> ConfigResult<Self> {
         let prefix = &self.env_prefix;
-        tracing::debug!(prefix = %prefix, "读取环境变量配置");
+        ::tracing::debug!(prefix = %prefix, "读取环境变量配置");
         self.mysql
             .extend(mysql::collect_env_mysql(prefix, &self.mysql)?);
         self.redis
             .extend(redis::collect_env_redis(prefix, &self.redis)?);
+        self.tracing = tracing::collect_env_tracing(prefix, &self.tracing)?;
         Ok(self)
     }
 
@@ -298,7 +313,7 @@ impl ConfigBuilder {
         f: impl FnOnce(MysqlConfigBuilder) -> MysqlConfigBuilder,
     ) -> Self {
         let name = name.into();
-        tracing::debug!(name = %name, "配置 MySQL 连接");
+        ::tracing::debug!(name = %name, "配置 MySQL 连接");
         let base = self.mysql.remove(&name).unwrap_or_default();
         let cfg = f(MysqlConfigBuilder(base)).0;
         self.mysql.insert(name, cfg);
@@ -312,22 +327,34 @@ impl ConfigBuilder {
         f: impl FnOnce(RedisConfigBuilder) -> RedisConfigBuilder,
     ) -> Self {
         let name = name.into();
-        tracing::debug!(name = %name, "配置 Redis 连接");
+        ::tracing::debug!(name = %name, "配置 Redis 连接");
         let base = self.redis.remove(&name).unwrap_or_default();
         let cfg = f(RedisConfigBuilder(base)).0;
         self.redis.insert(name, cfg);
         self
     }
 
+    /// 程序化添加 / 覆盖 Tracing 配置。
+    pub fn with_tracing(
+        mut self,
+        f: impl FnOnce(TracingConfigBuilder) -> TracingConfigBuilder,
+    ) -> Self {
+        ::tracing::debug!("配置 Tracing");
+        let base = std::mem::take(&mut self.tracing);
+        self.tracing = f(TracingConfigBuilder(base)).0;
+        self
+    }
+
     /// 合并另一个 Config（other 覆盖 self）。
     pub fn merge(mut self, other: Config) -> Self {
-        tracing::debug!(
+        ::tracing::debug!(
             mysql_count = other.mysql.len(),
             redis_count = other.redis.len(),
             "合并配置"
         );
         self.mysql.extend(other.mysql);
         self.redis.extend(other.redis);
+        self.tracing = other.tracing;
         self
     }
 
@@ -336,10 +363,13 @@ impl ConfigBuilder {
         let cfg = Config {
             mysql: self.mysql,
             redis: self.redis,
+            tracing: self.tracing,
         };
-        tracing::info!(
+        ::tracing::info!(
             mysql_count = cfg.mysql.len(),
             redis_count = cfg.redis.len(),
+            tracing_level = %cfg.tracing.level,
+            tracing_format = %cfg.tracing.format,
             "配置构建完成"
         );
         cfg.validate()?;
@@ -437,6 +467,7 @@ mod tests {
             .merge(Config {
                 mysql,
                 redis: HashMap::new(),
+                tracing: TracingConfig::default(),
             })
             .build()
             .unwrap();

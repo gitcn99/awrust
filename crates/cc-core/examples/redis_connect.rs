@@ -20,6 +20,8 @@ async fn main() -> cc_core::ConfigResult<()> {
         .with_env()?
         .build()?;
 
+    cc_core::tracing::init_tracing(&config.tracing)?;
+
     let manager = RedisManager::from_config(&config).await?;
     let conn = manager.require(RedisName::Default)?;
 

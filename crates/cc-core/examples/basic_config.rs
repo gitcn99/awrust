@@ -4,6 +4,9 @@ fn main() -> cc_core::ConfigResult<()> {
     // 从文件加载（自动识别 TOML/YAML/JSON）
     let config = ConfigBuilder::from_file("config/config.toml")?.build()?;
 
+    // 初始化 tracing 日志
+    cc_core::tracing::init_tracing(&config.tracing)?;
+
     if let Some(mysql_config) = config.mysql("default") {
         println!("MySQL: {}:{}", mysql_config.host, mysql_config.port);
     }

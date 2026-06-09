@@ -101,6 +101,31 @@ pub enum Error {
     /// 环境变量解析失败。
     #[error("环境变量 {key} 解析失败: {message}")]
     EnvParse { key: String, message: String },
+
+    // ── Tracing 相关 ──
+    /// tracing subscriber 已初始化，不可重复调用。
+    #[cfg(feature = "tracing-init")]
+    #[error("tracing subscriber 已初始化，不可重复调用")]
+    TracingAlreadyInit,
+
+    /// 无效的日志级别。
+    #[cfg(feature = "tracing-init")]
+    #[error("无效的日志级别: {0}")]
+    TracingInvalidLevel(String),
+
+    // ── HTTP 相关 ──
+    /// HTTP 客户端创建失败。
+    #[cfg(feature = "http")]
+    #[error("创建 HTTP 客户端失败: {message}")]
+    HttpClientCreate { message: String },
+
+    /// HTTP 请求失败。
+    #[cfg(feature = "http")]
+    #[error("HTTP 请求失败: {source}")]
+    HttpRequest {
+        #[source]
+        source: reqwest::Error,
+    },
 }
 
 /// 用于 Config::build() 的 Result 类型别名。
@@ -133,5 +158,12 @@ impl From<serde_json::Error> for Error {
             format: "JSON".into(),
             message: e.to_string(),
         }
+    }
+}
+
+#[cfg(feature = "http")]
+impl From<reqwest::Error> for Error {
+    fn from(e: reqwest::Error) -> Self {
+        Error::HttpRequest { source: e }
     }
 }

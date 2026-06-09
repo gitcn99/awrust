@@ -22,3 +22,8 @@ database = "your_db"
 # Redis
 [redis.default]
 url = "redis://:password@127.0.0.1:6379"
+
+# Tracing 日志配置
+[tracing]
+level = "info"
+format = "pretty"

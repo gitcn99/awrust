@@ -231,7 +231,7 @@ pub(crate) fn collect_env_mysql(
             }
             "SSL_MODE" => entry.ssl_mode = val,
             "DISABLE_SQL_MODE" => {
-                entry.disable_sql_mode = matches!(val.as_str(), "1" | "true" | "TRUE")
+                entry.disable_sql_mode = matches!(val.to_lowercase().as_str(), "1" | "true" | "yes")
             }
             "ACQUIRE_TIMEOUT" => {
                 entry.acquire_timeout = val.parse().map_err(|e| Error::EnvParse {

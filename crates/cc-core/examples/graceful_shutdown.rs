@@ -9,11 +9,8 @@ use cc_core::{ConfigBuilder, GracefulShutdown};
 
 #[tokio::main]
 async fn main() -> cc_core::ConfigResult<()> {
-    // 1. 加载配置
-    let config = ConfigBuilder::new()
-        .with_file("config/config.toml")?
-        .with_env()?
-        .build()?;
+    // 1. 加载配置（自动加载 config/config.<mode>.toml）
+    let config = ConfigBuilder::new()?.build()?;
 
     // 初始化 tracing 日志
     cc_core::tracing::init_tracing(&config.tracing)?;

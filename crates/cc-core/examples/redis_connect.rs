@@ -15,10 +15,7 @@ impl IntoRedisName for RedisName {
 
 #[tokio::main]
 async fn main() -> cc_core::ConfigResult<()> {
-    let config = ConfigBuilder::new()
-        .with_file("config/config.toml")?
-        .with_env()?
-        .build()?;
+    let config = ConfigBuilder::new()?.build()?;
 
     cc_core::tracing::init_tracing(&config.tracing)?;
 

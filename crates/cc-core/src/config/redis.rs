@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn validation_rejects_bad_redis_url() {
-        let result = ConfigBuilder::new()
+        let result = ConfigBuilder::empty()
             .with_redis("default", |r| r.url("http://wrong"))
             .build();
         assert!(result.is_err());

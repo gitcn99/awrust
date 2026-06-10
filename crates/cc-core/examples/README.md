@@ -3,10 +3,13 @@
 ## 配置
 
 ```bash
-[ -f config/config.toml ] || cp config/config.toml.example config/config.toml
+[ -f config/config.dev.toml ] || cp config/config.example.toml config/config.dev.toml
 ```
 
-按需修改 `config/config.toml` 中的连接信息后运行示例。
+按需修改 `config/config.dev.toml` 中的连接信息后运行示例。
+
+示例默认按编译模式加载对应文件：debug → `config.dev.toml`，release → `config.online.toml`。
+可通过 `CC_MODE=<name>` 环境变量切换到任意命名配置（加载 `config/config.<name>.toml`）。
 
 ## 示例列表
 

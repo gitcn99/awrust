@@ -5,7 +5,7 @@ help:
 
 env:
 	pnpm add -DE prettier
-	[ -f config/config.toml ] || cp config/config.toml.example config/config.toml
+	[ -f config/config.dev.toml ] || cp config/config.example.toml config/config.dev.toml
 
 fmt:
 	pnpm exec prettier . --write --ignore-unknown --log-level warn

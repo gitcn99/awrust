@@ -1,6 +1,6 @@
 # awrust
 
-Rust 工作空间，包含 `cc-core` 核心公共库——提供分层配置系统 + MySQL / Redis 连接管理 + Tracing 日志初始化 + HTTP 客户端 + 优雅关闭。
+Rust 工作空间，包含 `cc-core` 核心公共库——提供命名模式配置系统 + MySQL / Redis 连接管理 + Tracing 日志初始化 + HTTP 客户端 + 优雅关闭。
 
 ## 项目结构
 
@@ -10,7 +10,7 @@ awrust/
 │   └── cc-core/              # 核心公共库
 │       ├── src/
 │       │   ├── lib.rs
-│       │   ├── config/       # 分层配置系统
+│       │   ├── config/       # 命名模式配置系统
 │       │   ├── mysql.rs      # MySQL 连接池管理
 │       │   ├── redis.rs      # Redis 连接管理
 │       │   ├── tracing.rs    # Tracing 日志初始化
@@ -18,8 +18,9 @@ awrust/
 │       │   └── shutdown.rs   # 优雅关闭管理器
 │       └── examples/         # 使用示例
 ├── config/                   # 配置文件
-│   ├── config.toml           # 实际配置（git ignored）
-│   └── config.toml.example   # 配置模板
+│   ├── config.dev.toml           # 开发环境配置（git ignored）
+│   ├── config.online.toml        # 线上环境配置（git ignored）
+│   └── config.example.toml       # 配置模板
 ├── Cargo.toml                # 工作空间配置
 └── Makefile                  # 开发命令
 ```
@@ -35,7 +36,7 @@ cargo add cc-core
 ### 配置文件
 
 ```bash
-[ -f config/config.toml ] || cat > config/config.toml << 'EOF'
+[ -f config/config.dev.toml ] || cat > config/config.dev.toml << 'EOF'
 [mysql.default]
 host = "127.0.0.1"
 port = 3306
@@ -52,9 +53,12 @@ format = "pretty"
 EOF
 ```
 
+默认按编译模式加载对应文件：debug → `config.dev.toml`，release → `config.online.toml`。
+可通过 `CC_MODE=<name>` 环境变量切换到任意命名配置（加载 `config/config.<name>.toml`）。
+
 ### 功能特性
 
-- **分层配置** — 支持 TOML / YAML / JSON 文件 → 环境变量 → 程序化覆盖
+- **命名模式配置** — 每个环境独立配置文件（TOML / YAML / JSON），支持环境变量和程序化覆盖
 - **MySQL 连接池** — 多命名连接池管理，支持健康检查和优雅关闭
 - **Redis 连接管理** — 多命名连接管理，支持自动重连和多路复用
 - **Tracing 初始化** — 从配置读取日志级别和输出格式（json/pretty），一键初始化
@@ -74,7 +78,7 @@ EOF
 ## 开发
 
 ```bash
-make env      # 初始化开发环境（安装 prettier、生成 config.toml）
+make env      # 初始化开发环境（安装 prettier、生成 config.dev.toml）
 make fmt      # 格式化代码（prettier + cargo fmt）
 make lint     # 格式化 + 检查 + clippy
 make test     # 运行测试

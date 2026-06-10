@@ -261,7 +261,7 @@ mod tests {
 
     #[test]
     fn validation_rejects_empty_host() {
-        let result = ConfigBuilder::new()
+        let result = ConfigBuilder::empty()
             .with_mysql("default", |m| {
                 m.host("").user("u").password("p").database("db")
             })

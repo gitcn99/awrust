@@ -22,12 +22,16 @@ use crate::error::{ConfigResult, Error};
 /// ```rust,no_run
 /// use cc_core::config::TracingConfig;
 /// use cc_core::tracing::init_tracing;
+/// use cc_core::ConfigResult;
 ///
-/// let cfg = TracingConfig {
-///     level: "info".into(),
-///     format: "pretty".into(),
-/// };
-/// init_tracing(&cfg).unwrap();
+/// fn main() -> ConfigResult<()> {
+///     let cfg = TracingConfig {
+///         level: "info".into(),
+///         format: "pretty".into(),
+///     };
+///     init_tracing(&cfg)?;
+///     Ok(())
+/// }
 /// ```
 pub fn init_tracing(cfg: &TracingConfig) -> ConfigResult<()> {
     // 优先使用 RUST_LOG 环境变量，否则使用配置中的 level

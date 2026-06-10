@@ -28,8 +28,7 @@ struct CreateUser {
 
 #[tokio::main]
 async fn main() -> cc_core::ConfigResult<()> {
-    // 初始化 tracing（从配置文件读取日志级别和格式）
-    let config = cc_core::ConfigBuilder::from_file("config/config.toml")?.build()?;
+    let config = cc_core::ConfigBuilder::new()?.build()?;
     cc_core::tracing::init_tracing(&config.tracing)?;
 
     // 1. 创建 HTTP 客户端

@@ -20,6 +20,16 @@ pub enum Error {
     #[error("配置验证失败: {0}")]
     ConfigValidation(String),
 
+    /// 命名模式配置文件未找到。
+    #[error(
+        "模式配置文件不存在: {path}（当前模式 `{mode}`，请创建该文件或通过 {prefix}_MODE 环境变量切换模式）"
+    )]
+    ModeConfigNotFound {
+        path: String,
+        mode: String,
+        prefix: String,
+    },
+
     // ── MySQL 相关 ──
     /// MySQL 连接建立失败。
     #[cfg(feature = "mysql")]

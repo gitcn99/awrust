@@ -6,15 +6,15 @@
 //! use cc_core::http::HttpClient;
 //! use std::time::Duration;
 //!
-//! # async fn example() {
+//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let client = HttpClient::builder()
 //!     .base_url("https://api.example.com")
 //!     .timeout(Duration::from_secs(30))
 //!     .default_header("X-Api-Key", "my-key")
-//!     .build()
-//!     .unwrap();
+//!     .build()?;
 //!
-//! let resp = client.get("/users").send().await.unwrap();
+//! let resp = client.get("/users").send().await?;
+//! # Ok(())
 //! # }
 //! ```
 

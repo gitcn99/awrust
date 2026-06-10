@@ -1,5 +1,10 @@
-# 配置示例
-# 复制本文件为 config/config.toml 后按需填写真实连接信息。
+# 开发环境配置示例
+# 复制本文件为 config/config.dev.toml 后按需填写真实连接信息。
+#
+# 每个环境使用独立的完整配置文件，无需基础配置层：
+#   config/config.dev.toml      ← 开发环境（debug 编译模式默认 / CC_MODE=dev）
+#   config/config.online.toml   ← 线上环境（release 编译模式默认 / CC_MODE=online）
+#   config/config.<自定义>.toml ← 任意命名（通过 CC_MODE=<自定义> 切换）
 
 # MySQL
 [mysql.default]

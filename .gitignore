@@ -38,6 +38,7 @@ dist
 skills-lock.json
 
 # private
-config/config.toml
+config/config.*.toml
+!config/config.example.toml
 data
 !data/.gitkeep

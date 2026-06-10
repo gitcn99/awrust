@@ -1,8 +1,8 @@
 use cc_core::ConfigBuilder;
 
 fn main() -> cc_core::ConfigResult<()> {
-    // 从文件加载（自动识别 TOML/YAML/JSON）
-    let config = ConfigBuilder::from_file("config/config.toml")?.build()?;
+    // 自动加载 config/config.<mode>.toml（按编译模式或 CC_MODE 选择）
+    let config = ConfigBuilder::new()?.build()?;
 
     // 初始化 tracing 日志
     cc_core::tracing::init_tracing(&config.tracing)?;
